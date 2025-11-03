@@ -12,7 +12,7 @@
   - 초대받은 설문 목록 조회
   - 설문 상세 보기 및 투표
 - **설문 결과**
-  - 투표 종료 후, 설문 결과 확인
+  - 투표 종료 후, 설문 결과 확인 (총 투표 수, 선택지별 득표율, 투표자 목록)
 
 ## 기술 스택
 
@@ -20,6 +20,7 @@
 - **Database**: H2 In-memory DB, Spring Data JPA
 - **API Documentation**: SpringDoc (Swagger UI)
 - **Build Tool**: Gradle
+- **Etc**: Lombok
 
 ## 실행 방법
 
@@ -42,3 +43,48 @@
   - `JDBC URL`: `jdbc:h2:mem:surveydb`
   - `사용자명`: `sa`
   - `비밀번호`: (공란)
+
+## DB 테이블
+
+### 1. User (사용자)
+| Column | Type | Description |
+| --- | --- | --- |
+| id | Long (PK) | 사용자 고유 ID |
+| username | String | 사용자 이름 |
+| email | String | 이메일 |
+| role | Enum | 권한 (ADMIN, USER) |
+
+### 2. Survey (설문)
+| Column | Type | Description |
+| --- | --- | --- |
+| id | Long (PK) | 설문 고유 ID |
+| title | String | 설문 제목 |
+| description | String | 설문 설명 |
+| admin_id | Long (FK) | 작성한 관리자 ID (User) |
+| status | Enum | 설문 상태 (ACTIVE, CLOSED) |
+| created_at | LocalDateTime | 생성 일시 |
+
+### 3. SurveyOption (설문 선택지)
+| Column | Type | Description |
+| --- | --- | --- |
+| id | Long (PK) | 선택지 고유 ID |
+| survey_id | Long (FK) | 설문 ID (Survey) |
+| option_text | String | 선택지 내용 (예: "짜장면") |
+| order_num | Integer | 선택지 순서 |
+
+### 4. SurveyInvitation (설문 초대)
+| Column | Type | Description |
+| --- | --- | --- |
+| id | Long (PK) | 초대 고유 ID |
+| survey_id | Long (FK) | 설문 ID (Survey) |
+| user_id | Long (FK) | 초대받은 사용자 ID (User) |
+| status | Enum | 초대 상태 (PENDING, COMPLETED) |
+
+### 5. Vote (투표/답변)
+| Column | Type | Description |
+| --- | --- | --- |
+| id | Long (PK) | 투표 고유 ID |
+| survey_id | Long (FK) | 설문 ID (Survey) |
+| user_id | Long (FK) | 투표한 사용자 ID (User) |
+| option_id | Long (FK) | 선택한 옵션 ID (SurveyOption) |
+| created_at | LocalDateTime | 투표 일시 |

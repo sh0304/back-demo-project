@@ -81,27 +81,10 @@ public class SurveyService {
     Survey survey = surveyRepository.findById(surveyId)
             .orElseThrow(() -> new RuntimeException("설문을 찾을 수 없습니다."));
 
-    // 설문 선택지 조회
-    List<SurveyOption> options = surveyOptionRepository.findBySurveyId(surveyId);
+    List<SurveyOption> options = surveyOptionRepository.findBySurveyIdOrderByOrderNumAsc(surveyId);
 
-    // 모든 투표 내역 조회 (user, option fetch join)
-    List<Vote> votes = voteRepository.findAllBySurveyIdWithUserAndOption(surveyId);
-
-    // 선택지별 투표 그룹화
-    Map<Long, List<Vote>> voteByOption = votes.stream()
-            .collect(Collectors.groupingBy(vote -> vote.getOption().getId()));
-
-    // 선택지별 결과 DTO 변환
-
-
-    return SurveyResultDto.builder()
-            .surveyId(survey.getId())
-            .title(survey.getTitle())
-            .description(survey.getDescription())
-            .status(survey.getStatus())
-            .options(optionResults)
-            .createdAt(survey.getCreatedAt())
-            .build();
+    // DTO 변환
+    return SurveyDetailDto.from(survey, options);
   }
 
   /**
@@ -181,11 +164,54 @@ public class SurveyService {
     Survey survey = surveyRepository.findById(surveyId)
             .orElseThrow(() -> new RuntimeException("설문을 찾을 수 없습니다"));
 
-    // 설문의 선택지 조회
-    List<SurveyOption> options = surveyOptionRepository.findBySurveyId(surveyId);
+    // 설문에 포함된 모든 선택지 조회
+    List<SurveyOption> options = surveyOptionRepository.findBySurveyIdOrderByOrderNumAsc(surveyId);
 
-    List<Vote> votes = voteRepository.findAllBy
+    // 설문에 모든 투표 기록(사용자, 선택지 정보) 조회
+    List<Vote> votes = voteRepository.findAllBySurveyIdWithUserAndOption(surveyId);
+    int totalVotes = votes.size();
 
+    // 선택지별 투표 그룹화 (<선택지 ID, 투표한 목록> Map 생성)
+    Map<Long, List<Vote>> votesByOption = votes.stream()
+            .collect(Collectors.groupingBy(vote -> vote.getOption().getId()));
+
+    // 각 선택지별 결과 DTO 변환
+    List<SurveyResultDto.OptionResultDto> optionResults = options.stream()
+            .map(option -> {
+              // 선택지에 해당하는 투표 목록
+              List<Vote> optionVotes = votesByOption.getOrDefault(option.getId(), List.of());
+              // 득표율 계산
+              double percentage = (totalVotes == 0) ? 0 : ((double) optionVotes.size() / totalVotes) * 100;
+
+              // 선택지에 투표한 사용자 목록 dto 생성
+              List<SurveyResultDto.VoterDto> voters = optionVotes.stream()
+                      .map(vote -> SurveyResultDto.VoterDto.builder()
+                              .userId(vote.getUser().getId())
+                              .username(vote.getUser().getUsername())
+                              .votedAt(vote.getCreatedAt())
+                              .build())
+                      .collect(Collectors.toList());
+
+              // 선택지별 결과 dto 생성
+              return SurveyResultDto.OptionResultDto.builder()
+                      .optionId(option.getId())
+                      .optionText(option.getOptionText())
+                      .percentage(percentage)
+                      .voters(voters)
+                      .build();
+            })
+            .collect(Collectors.toList());
+
+    // 모든 정보에 대한 dto 반환
+    return SurveyResultDto.builder()
+            .surveyId(survey.getId())
+            .title(survey.getTitle())
+            .description(survey.getDescription())
+            .status(survey.getStatus())
+            .totalVotes(totalVotes)
+            .options(optionResults)
+            .createdAt(survey.getCreatedAt())
+            .build();
   }
 }
 

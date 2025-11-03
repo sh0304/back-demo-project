@@ -6,6 +6,8 @@ import com.example.backdemoproject.dto.response.SurveyDetailDto;
 import com.example.backdemoproject.dto.response.SurveyResponseDto;
 import com.example.backdemoproject.dto.response.SurveyResultDto;
 import com.example.backdemoproject.service.SurveyService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +16,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.net.URI;
 import java.util.List;
 
+@Tag(name = "Survey", description = "설문 관리 API")
 @RestController // Rest API 컨트롤러 선언
 @RequestMapping("/api/surveys") // URL 설정
 @RequiredArgsConstructor // 생성자 주입
@@ -30,6 +33,7 @@ public class SurveyController {
    * GET /api/surveys?userId=1  (관리자)
    * GET /api/surveys?userId=2  (사용자)
    */
+  @Operation(summary = "설문 목록 조회", description = "모든 설문 목록을 조회하는 API입니다.")
   @GetMapping
   public ResponseEntity<List<SurveyResponseDto>> getSurveys(
           @RequestParam Long userId) {
@@ -44,6 +48,7 @@ public class SurveyController {
    *
    * GET /api/surveys/{id}
    */
+  @Operation(summary = "설문 상세 조회", description = "특정 설문의 상세 정보를 조회하는 API입니다.")
   @GetMapping("/{id}")
   public ResponseEntity<SurveyDetailDto> getSurveyDetail(@PathVariable Long id) {
     SurveyDetailDto survey = surveyService.getSurveyDetail(id);
@@ -55,6 +60,7 @@ public class SurveyController {
    *
    * POST /api/surveys (관리자용)
    */
+  @Operation(summary = "설문 생성", description = "새로운 설문을 생성하는 API입니다. (관리자 전용)")
   @PostMapping
   public ResponseEntity<SurveyDetailDto> createSurvey(@RequestBody SurveyCreateRequestDto requestDto) {
     SurveyDetailDto createdSurvey = surveyService.createSurvey(requestDto);
@@ -73,6 +79,7 @@ public class SurveyController {
    *
    * POST /api/surveys/{id}/vote (사용자용)
    */
+  @Operation(summary = "설문 투표", description = "사용자가 설문에 투표하는 API입니다.")
   @PostMapping("/{id}/vote")
   public ResponseEntity<Void> voteSurvey(@PathVariable Long id, @RequestBody VoteRequestDto requestDto) {
     surveyService.voteSurvey(id, requestDto);
@@ -84,6 +91,7 @@ public class SurveyController {
    *
    * GET /api/surveys/{id}/result
    */
+  @Operation(summary = "설문 결과 조회", description = "설문의 투표 결과를 조회하는 API 입니다.")
   @GetMapping("/{id}/result")
   public ResponseEntity<SurveyResultDto> getSurveyResult(@PathVariable Long id) {
     SurveyResultDto survey = surveyService.getSurveyResult(id);

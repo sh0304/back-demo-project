@@ -20,6 +20,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString(exclude = {"survey", "user", "option"})
 public class Vote {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)

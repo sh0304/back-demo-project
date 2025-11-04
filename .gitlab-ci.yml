@@ -5,18 +5,18 @@ stages:
 
 variables:
   # Using GRADLE_PROFILE instead of MVN_PROFILE for clarity.
-  # Setting 'dev' as the default for the main branch.
+  # Setting 'dev' as the default for the dev branch.
   GRADLE_PROFILE: "dev"
   CONTAINER_NM: "back-demo-project"
   INST_TAG_KEY: "appType"
-  INST_TAG_VAL: "docker-dev-deploy" # Assuming dev values for main branch
+  INST_TAG_VAL: "docker-dev-deploy" # Assuming dev values for dev branch
 
 print_env:
   stage: print_env
   script:
     - printenv
   rules:
-    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_BRANCH == "dev"
 
 build_and_push:
   stage: build_and_push
@@ -57,4 +57,4 @@ deploy:
     AWS_SECRET_ACCESS_KEY: $AWS_GITLAB_CICD_SECRET_KEY
     AWS_DEFAULT_REGION: $AWS_DEFAULT_REGION
   rules:
-    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_BRANCH == "dev"

@@ -10,5 +10,11 @@ import java.util.Optional;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
 
-  List<User> findAllByOrderByUsernameAsc();
+  List<User> findAllByOrderByNameAsc();
+
+  Optional<User> findByName(String userName);
+
+  boolean existsByName(String userName);
+
+  boolean existsByEmail(String email);
 }

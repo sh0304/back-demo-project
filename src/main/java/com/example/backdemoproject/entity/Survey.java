@@ -30,9 +30,9 @@ public class Survey {
   private String description;
 
   // N:1 관계 - 하나의 관리자는 여러 설문을 가질 수 있음
-  @ManyToOne(fetch = FetchType.LAZY) // FetchType.LAZY: 지연 로딩 (필요할 때만 가져옴)
-  @JoinColumn(name = "creator_id", nullable = false) // FK admin_id 설정
-  @Comment("설문 생성 관리자")
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "creator_id")
+  @Comment("작성자")
   private User creator;
 
   @Enumerated(EnumType.STRING)
@@ -45,4 +45,8 @@ public class Survey {
   @Column(name = "created_at", nullable = false, updatable = false)
   @Comment("생성 일시")
   private LocalDateTime createdAt;
+
+  @Comment("마감일")
+  @Column(name = "due_date")
+  private LocalDateTime dueDate;
 }

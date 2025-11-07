@@ -1,6 +1,5 @@
 package com.example.backdemoproject.entity;
 
-import com.example.backdemoproject.enums.InvitationStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Comment;
@@ -38,10 +37,4 @@ public class SurveyInvitation {
   @JoinColumn(name = "user_id", nullable = false) // user ID는 FK
   @Comment("초대받은 사용자 ID")
   private User user;
-
-  @Enumerated(EnumType.STRING)
-  @Column(nullable = false, length = 20)
-  @Builder.Default
-  @Comment("초대 상태 (PENDING, COMPLETED)")
-  private InvitationStatus status = InvitationStatus.PENDING;
 }

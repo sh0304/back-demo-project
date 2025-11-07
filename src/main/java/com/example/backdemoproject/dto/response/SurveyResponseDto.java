@@ -14,21 +14,21 @@ public class SurveyResponseDto {
   private Long id;
   private String title;
   private String description;
-  private Long adminId;
-  private String adminUsername;  // 관리자 이름
   private SurveyStatus status;
   private LocalDateTime createdAt;
+  private LocalDateTime dueDate;
+  private Long userVoteOptionId;
 
   // Entity → DTO 변환 메서드
-  public static SurveyResponseDto from(Survey survey) {
+  public static SurveyResponseDto from(Survey survey, Long userVoteOptionId) {
     return SurveyResponseDto.builder()
             .id(survey.getId())
             .title(survey.getTitle())
             .description(survey.getDescription())
-            .adminId(survey.getCreator().getId())
-            .adminUsername(survey.getCreator().getUsername())
             .status(survey.getStatus())
             .createdAt(survey.getCreatedAt())
+            .dueDate(survey.getDueDate())
+            .userVoteOptionId(userVoteOptionId)
             .build();
   }
 }

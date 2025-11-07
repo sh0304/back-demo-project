@@ -11,8 +11,10 @@ import com.example.backdemoproject.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service // Service 레어어 선언
@@ -34,12 +36,12 @@ public class SurveyService {
   public List<SurveyResponseDto> getSurveysByUserId(Long userId) {
     // 사용자 조회
     User user = userRepository.findById(userId)
-            .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다. ID: " + userId));
+            .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. ID: " + userId));
 
     // role에 따라 다른 결과 반환
     if (user.getRole() == UserRole.ADMIN) {
       // 관리자: 전체 설문 조회
-      return getAllSurveys();
+      return getAllSurveys(userId);
     } else {
       // 일반 사용자: 내가 초대받은 설문만 조회
       return getMyInvitedSurveys(userId);
@@ -49,14 +51,19 @@ public class SurveyService {
   /**
    * 전체 설문 목록 조회 (관리자용)
    */
-  public List<SurveyResponseDto> getAllSurveys() {
+  public List<SurveyResponseDto> getAllSurveys(Long userId) {
     // Repository에서 Entity 조회
     List<Survey> surveys = surveyRepository.findAllSurveys();
 
     // Entity → DTO 변환
     // stream()를 생성하고, 각 entity를 dto로 반환 후 list로 변환 (for문 대신)
     return surveys.stream()
-            .map(SurveyResponseDto::from)
+            .map(survey -> {
+              Long userVoteOptionId = voteRepository.findBySurveyIdAndUserId(survey.getId(), userId)
+                      .map(vote -> vote.getOption().getId())
+                      .orElse(null);
+              return SurveyResponseDto.from(survey, userVoteOptionId);
+            })
             .collect(Collectors.toList()); // stream을 다시 Collection(List, Set)으로 변환
   }
 
@@ -69,22 +76,32 @@ public class SurveyService {
 
     // 초대된 설문들만 추출
     return invitations.stream()
-            .map(invitation -> SurveyResponseDto.from(invitation.getSurvey()))
+            .map(invitation -> {
+              Survey survey = invitation.getSurvey();
+              Long userVoteOptionId = voteRepository.findBySurveyIdAndUserId(survey.getId(), userId)
+                      .map(vote -> vote.getOption().getId())
+                      .orElse(null);
+              return SurveyResponseDto.from(survey, userVoteOptionId);
+            })
             .collect(Collectors.toList());
   }
 
   /**
    * 설문 상세 조회 (선택지 포함)
    */
-  public SurveyDetailDto getSurveyDetail(Long surveyId) {
+  public SurveyDetailDto getSurveyDetail(Long surveyId, Long userId) {
     // 설문 조회
     Survey survey = surveyRepository.findById(surveyId)
-            .orElseThrow(() -> new RuntimeException("설문을 찾을 수 없습니다."));
+            .orElseThrow(() -> new IllegalArgumentException("설문을 찾을 수 없습니다."));
 
     List<SurveyOption> options = surveyOptionRepository.findBySurveyIdOrderByOrderNumAsc(surveyId);
 
+    // 투표 정보 확인
+    Optional<Vote> userVote = voteRepository.findBySurveyIdAndUserId(surveyId, userId);
+    Long userVoteOptionId = userVote.map(vote -> vote.getOption().getId()).orElse(null);
+
     // DTO 변환
-    return SurveyDetailDto.from(survey, options);
+    return SurveyDetailDto.from(survey, options, userVoteOptionId);
   }
 
   /**
@@ -94,17 +111,18 @@ public class SurveyService {
   public SurveyDetailDto createSurvey(SurveyCreateRequestDto requestDto) {
     // 사용자 조회
     User creator = userRepository.findById(requestDto.getCreatorId())
-            .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+            .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
     // 관리자 권한 확인
     if (creator.getRole() != UserRole.ADMIN) {
-      throw new RuntimeException("설문 생성 권한이 없습니다.");
+      throw new IllegalStateException("설문 생성 권한이 없습니다.");
     }
 
     // 설문 엔티티 저장
     Survey survey = Survey.builder()
             .title(requestDto.getTitle())
             .description(requestDto.getDescription())
+            .dueDate(requestDto.getDueDate())
             .creator(creator)
             .build();
     surveyRepository.save(survey);
@@ -119,8 +137,20 @@ public class SurveyService {
             .collect(Collectors.toList());
     surveyOptionRepository.saveAll(options);
 
+    // 사용자 초대
+    if (requestDto.getInvitedUserIds() != null && !requestDto.getInvitedUserIds().isEmpty()) {
+      List<User> invitedUsers = userRepository.findAllById(requestDto.getInvitedUserIds());
+      List<SurveyInvitation> invitations = invitedUsers.stream()
+              .map(user -> SurveyInvitation.builder()
+                      .survey(survey)
+                      .user(user)
+                      .build())
+              .collect(Collectors.toList());
+      invitationRepository.saveAll(invitations);
+    }
+
     // DTO 변환
-    return SurveyDetailDto.from(survey, options);
+    return SurveyDetailDto.from(survey, options, null);
   }
 
   /**
@@ -130,16 +160,22 @@ public class SurveyService {
   public void voteSurvey(Long surveyId, VoteRequestDto requestDto) {
     // 사용자가 이미 이 설문에 투표했는지 확인
     if (voteRepository.existsBySurveyIdAndUserId(surveyId, requestDto.getUserId())) {
-      throw new RuntimeException("이미 이 설문에 투표했습니다.");
+      throw new IllegalStateException("이미 설문에 투표했습니다.");
     }
 
     // 필요한 엔티티 조회
     Survey survey = surveyRepository.findById(surveyId)
-            .orElseThrow(() -> new RuntimeException("설문을 찾을 수 없습니다."));
+            .orElseThrow(() -> new IllegalArgumentException("설문을 찾을 수 없습니다."));
+
+    // 설문 마감일 확인
+    if (survey.getDueDate() != null && LocalDateTime.now().isAfter(survey.getDueDate())) {
+      throw new IllegalStateException("설문이 마감되었습니다.");
+    }
+
     User user = userRepository.findById(requestDto.getUserId())
-            .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+            .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
     SurveyOption option = surveyOptionRepository.findById(requestDto.getOptionId())
-            .orElseThrow(() -> new RuntimeException("선택지를 찾을 수 없습니다."));
+            .orElseThrow(() -> new IllegalArgumentException("선택지를 찾을 수 없습니다."));
 
     // 선택지가 해당 설문에 속하는지 확인
     if (!option.getSurvey().getId().equals(surveyId)) {
@@ -162,7 +198,7 @@ public class SurveyService {
   public SurveyResultDto getSurveyResult(Long surveyId) {
     // 설문 조회
     Survey survey = surveyRepository.findById(surveyId)
-            .orElseThrow(() -> new RuntimeException("설문을 찾을 수 없습니다"));
+            .orElseThrow(() -> new IllegalArgumentException("설문을 찾을 수 없습니다"));
 
     // 설문에 포함된 모든 선택지 조회
     List<SurveyOption> options = surveyOptionRepository.findBySurveyIdOrderByOrderNumAsc(surveyId);
@@ -181,13 +217,13 @@ public class SurveyService {
               // 선택지에 해당하는 투표 목록
               List<Vote> optionVotes = votesByOption.getOrDefault(option.getId(), List.of());
               // 득표율 계산
-              double percentage = (totalVotes == 0) ? 0 : ((double) optionVotes.size() / totalVotes) * 100;
+              int percentage = (totalVotes == 0) ? 0 : (optionVotes.size() / totalVotes) * 100;
 
               // 선택지에 투표한 사용자 목록 dto 생성
               List<SurveyResultDto.VoterDto> voters = optionVotes.stream()
                       .map(vote -> SurveyResultDto.VoterDto.builder()
                               .userId(vote.getUser().getId())
-                              .username(vote.getUser().getUsername())
+                              .username(vote.getUser().getName())
                               .votedAt(vote.getCreatedAt())
                               .build())
                       .collect(Collectors.toList());
@@ -208,9 +244,10 @@ public class SurveyService {
             .title(survey.getTitle())
             .description(survey.getDescription())
             .status(survey.getStatus())
+            .createdAt(survey.getCreatedAt())
+            .dueDate(survey.getDueDate())
             .totalVotes(totalVotes)
             .options(optionResults)
-            .createdAt(survey.getCreatedAt())
             .build();
   }
 }

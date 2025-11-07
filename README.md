@@ -6,12 +6,11 @@
 
 - **사용자 권한 관리**
   - 관리자(ADMIN)와 일반 사용자(USER) 역할 분리
-- **설문 관리 (관리자)**
-  - 설문 및 선택지 생성
 - **설문 참여 (사용자)**
   - 초대받은 설문 목록 조회
   - 설문 상세 보기 및 투표
-- **설문 결과**
+- **설문 관리 (관리자)**
+  - 설문 및 선택지 생성
   - 투표 종료 후, 설문 결과 확인 (총 투표 수, 선택지별 득표율, 투표자 목록)
 
 ## 기술 스택
@@ -20,7 +19,6 @@
 - **Database**: H2 In-memory DB, Spring Data JPA
 - **API Documentation**: SpringDoc (Swagger UI)
 - **Build Tool**: Gradle
-- **Etc**: Lombok
 
 ## 실행 방법
 
@@ -47,22 +45,24 @@
 ## DB 테이블
 
 ### 1. User (사용자)
-| Column | Type | Description |
-| --- | --- | --- |
-| id | Long (PK) | 사용자 고유 ID |
-| username | String | 사용자 이름 |
-| email | String | 이메일 |
-| role | Enum | 권한 (ADMIN, USER) |
+| Column   | Type | Description      |
+|----------| --- |------------------|
+| id       | Long (PK) | 사용자 고유 ID        |
+| name | String | 사용자 이름           |
+| email    | String | 이메일              |
+| password | String | 사용자 비밀번호         |
+| role     | Enum | 권한 (ADMIN, USER) |
 
 ### 2. Survey (설문)
-| Column | Type | Description |
-| --- | --- | --- |
-| id | Long (PK) | 설문 고유 ID |
-| title | String | 설문 제목 |
-| description | String | 설문 설명 |
-| admin_id | Long (FK) | 작성한 관리자 ID (User) |
-| status | Enum | 설문 상태 (ACTIVE, CLOSED) |
-| created_at | LocalDateTime | 생성 일시 |
+| Column      | Type | Description            |
+|-------------| --- |------------------------|
+| id          | Long (PK) | 설문 고유 ID               |
+| title       | String | 설문 제목                  |
+| description | String | 설문 설명                  |
+| creator     | Long (FK) | 작성한 관리자 ID (User)      |
+| status      | Enum | 설문 상태 (ACTIVE, CLOSED) |
+| created_at  | LocalDateTime | 생성 일시                  |
+| dueeDate    | LocalDateTime | 마감일                    |
 
 ### 3. SurveyOption (설문 선택지)
 | Column | Type | Description |
@@ -78,7 +78,6 @@
 | id | Long (PK) | 초대 고유 ID |
 | survey_id | Long (FK) | 설문 ID (Survey) |
 | user_id | Long (FK) | 초대받은 사용자 ID (User) |
-| status | Enum | 초대 상태 (PENDING, COMPLETED) |
 
 ### 5. Vote (투표/답변)
 | Column | Type | Description |

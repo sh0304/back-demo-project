@@ -45,19 +45,17 @@ public class SurveyController {
 
   /**
    * 설문 상세 조회 (선택지 포함)
-   *
    * GET /api/surveys/{id}
    */
   @Operation(summary = "설문 상세 조회", description = "특정 설문의 상세 정보를 조회하는 API입니다.")
   @GetMapping("/{id}")
-  public ResponseEntity<SurveyDetailDto> getSurveyDetail(@PathVariable Long id) {
-    SurveyDetailDto survey = surveyService.getSurveyDetail(id);
+  public ResponseEntity<SurveyDetailDto> getSurveyDetail(@PathVariable Long id, @RequestParam Long userId) {
+    SurveyDetailDto survey = surveyService.getSurveyDetail(id, userId);
     return ResponseEntity.ok(survey);
   }
 
   /**
    * 설문 생성
-   *
    * POST /api/surveys (관리자용)
    */
   @Operation(summary = "설문 생성", description = "새로운 설문을 생성하는 API입니다. (관리자 전용)")
@@ -76,7 +74,6 @@ public class SurveyController {
 
   /**
    * 설문 투표
-   *
    * POST /api/surveys/{id}/vote (사용자용)
    */
   @Operation(summary = "설문 투표", description = "사용자가 설문에 투표하는 API입니다.")

@@ -8,8 +8,12 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+import java.util.Optional;
+
 @Repository
 public interface VoteRepository extends JpaRepository<Vote, Long> {
+    Optional<Vote> findBySurveyIdAndUserId(Long surveyId, Long userId);
+
     boolean existsBySurveyIdAndUserId(Long surveyId, Long userId);
 
     @Query("SELECT v FROM Vote v JOIN FETCH v.user JOIN FETCH v.option WHERE v.survey.id = :surveyId")

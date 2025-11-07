@@ -18,9 +18,10 @@ public class SurveyResultDto {
   private String title;
   private String description;
   private SurveyStatus status;
+  private LocalDateTime createdAt;
+  private LocalDateTime dueDate;
   private int totalVotes;  // 총 투표 수
   private List<OptionResultDto> options;  // 각 선택지별 결과
-  private LocalDateTime createdAt;
 
   // 선택지별 결과
   @Getter
@@ -28,7 +29,7 @@ public class SurveyResultDto {
   public static class OptionResultDto {
     private Long optionId;
     private String optionText;
-    private double percentage;  // 득표율 (%)
+    private int percentage;  // 득표율 (%)
     private List<VoterDto> voters; // 선택지를 선택한 사용자들
   }
 

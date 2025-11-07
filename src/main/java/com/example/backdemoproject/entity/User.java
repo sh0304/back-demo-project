@@ -15,17 +15,21 @@ import org.hibernate.annotations.Comment;
 public class User {
 
   @Id // 기본키
-  @GeneratedValue(strategy = GenerationType.AUTO)
-  @Comment("사용자 ID")
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Comment("사용자 고유 ID")
   private Long id;
 
   @Column(nullable = false, unique = true, length = 50) // 컬럼 속성 지정
   @Comment("사용자명")
-  private String username;
+  private String name;
 
   @Column(nullable = false, unique = true, length = 100)
   @Comment("이메일")
   private String email;
+
+  @Column(length = 255)
+  @Comment("비밀번호")
+  private String password;
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 20)

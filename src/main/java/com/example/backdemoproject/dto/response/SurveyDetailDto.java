@@ -21,18 +21,22 @@ public class SurveyDetailDto {
   private String adminUsername;
   private SurveyStatus status;
   private LocalDateTime createdAt;
+  private LocalDateTime dueDate;
+  private Long userVoteOptionId; // 사용자가 투표한 선택지 ID
   private List<SurveyOptionDto> options;  // 선택지 목록
 
   // Entity → DTO 변환
-  public static SurveyDetailDto from(Survey survey, List<SurveyOption> options) {
+  public static SurveyDetailDto from(Survey survey, List<SurveyOption> options, Long userVoteOptionId) {
     return SurveyDetailDto.builder()
             .id(survey.getId())
             .title(survey.getTitle())
             .description(survey.getDescription())
             .adminId(survey.getCreator().getId())
-            .adminUsername(survey.getCreator().getUsername())
+            .adminUsername(survey.getCreator().getName())
             .status(survey.getStatus())
+            .userVoteOptionId(userVoteOptionId)
             .createdAt(survey.getCreatedAt())
+            .dueDate(survey.getDueDate())
             .options(options.stream()
                     .map(SurveyOptionDto::from)
                     .collect(Collectors.toList()))

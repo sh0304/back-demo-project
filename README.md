@@ -20,6 +20,40 @@
 - **API Documentation**: SpringDoc (Swagger UI)
 - **Build Tool**: Gradle
 
+## 프로젝트 구조
+
+```
+.
+├── src/main/java/com/example/backdemoproject/
+│   ├── config/          # 애플리케이션 설정 (Swagger, Web 등)
+│   ├── controller/      # API 엔드포인트 정의
+│   ├── dto/             # 데이터 전송 객체 (Request/Response)
+│   ├── entity/          # 데이터베이스 엔티티
+│   ├── enums/           # 공통 열거형
+│   ├── exception/       # 전역 예외 처리
+│   ├── repository/      # 데이터베이스 접근 계층 (JPA)
+│   └── service/         # 비즈니스 로직 처리
+├── src/main/resources/  # 설정 파일 (application.properties), SQL 스크립트 등
+└── build.gradle         # Gradle 빌드 설정
+```
+
+## API Endpoints
+
+### Survey API (`/api/surveys`)
+
+- `GET /api/surveys`: 설문 목록 조회
+- `GET /api/surveys/{id}`: 설문 상세 조회
+- `POST /api/surveys`: 설문 생성
+- `POST /api/surveys/{id}/vote`: 설문 투표
+- `GET /api/surveys/{id}/result`: 설문 결과 조회
+
+### User API (`/api/users`)
+
+- `GET /api/users`: 모든 사용자 조회
+- `GET /api/users/login/{username}`: 사용자 로그인
+- `POST /api/users/login`: 관리자 로그인
+- `POST /api/users/register`: 사용자 등록
+
 ## 실행 방법
 
 1.  **프로젝트 빌드**

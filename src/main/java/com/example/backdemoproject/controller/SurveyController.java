@@ -30,8 +30,8 @@ public class SurveyController {
    * - ADMIN: 전체 설문
    * - USER: 내가 초대받은 설문만
    *
-   * GET /api/surveys?userId=1  (관리자)
-   * GET /api/surveys?userId=2  (사용자)
+   * GET /api/surveys?userId=0  (관리자)
+   * GET /api/surveys?userId=1  (사용자)
    */
   @Operation(summary = "설문 목록 조회", description = "모든 설문 목록을 조회하는 API입니다.")
   @GetMapping

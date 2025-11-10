@@ -137,7 +137,7 @@ public class SurveyService {
             .collect(Collectors.toList());
     surveyOptionRepository.saveAll(options);
 
-    // 사용자 초대
+    // 사용자 초대 엔티티 저장
     if (requestDto.getInvitedUserIds() != null && !requestDto.getInvitedUserIds().isEmpty()) {
       List<User> invitedUsers = userRepository.findAllById(requestDto.getInvitedUserIds());
       List<SurveyInvitation> invitations = invitedUsers.stream()
@@ -217,7 +217,7 @@ public class SurveyService {
               // 선택지에 해당하는 투표 목록
               List<Vote> optionVotes = votesByOption.getOrDefault(option.getId(), List.of());
               // 득표율 계산
-              int percentage = (totalVotes == 0) ? 0 : (optionVotes.size() / totalVotes) * 100;
+              int percentage = (totalVotes == 0) ? 0 : (optionVotes.size() * 100) / totalVotes;
 
               // 선택지에 투표한 사용자 목록 dto 생성
               List<SurveyResultDto.VoterDto> voters = optionVotes.stream()
@@ -226,7 +226,7 @@ public class SurveyService {
                               .username(vote.getUser().getName())
                               .votedAt(vote.getCreatedAt())
                               .build())
-                      .collect(Collectors.toList());
+                      .toList();
 
               // 선택지별 결과 dto 생성
               return SurveyResultDto.OptionResultDto.builder()

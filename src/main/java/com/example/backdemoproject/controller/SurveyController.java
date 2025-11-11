@@ -30,8 +30,8 @@ public class SurveyController {
    * - ADMIN: 전체 설문
    * - USER: 내가 초대받은 설문만
    *
-   * GET /api/surveys?userId=0  (관리자)
-   * GET /api/surveys?userId=1  (사용자)
+   * [GET] /api/surveys?userId=0  (관리자)
+   * [GET] /api/surveys?userId=1  (사용자)
    */
   @Operation(summary = "설문 목록 조회", description = "모든 설문 목록을 조회하는 API입니다.")
   @GetMapping
@@ -45,7 +45,7 @@ public class SurveyController {
 
   /**
    * 설문 상세 조회 (선택지 포함)
-   * GET /api/surveys/{id}
+   * [GET] /api/surveys/{id}
    */
   @Operation(summary = "설문 상세 조회", description = "특정 설문의 상세 정보를 조회하는 API입니다.")
   @GetMapping("/{id}")
@@ -56,7 +56,7 @@ public class SurveyController {
 
   /**
    * 설문 생성
-   * POST /api/surveys (관리자용)
+   * [POST] /api/surveys (관리자용)
    */
   @Operation(summary = "설문 생성", description = "새로운 설문을 생성하는 API입니다. (관리자 전용)")
   @PostMapping
@@ -74,7 +74,7 @@ public class SurveyController {
 
   /**
    * 설문 투표
-   * POST /api/surveys/{id}/vote (사용자용)
+   * [POST] /api/surveys/{id}/vote (사용자용)
    */
   @Operation(summary = "설문 투표", description = "사용자가 설문에 투표하는 API입니다.")
   @PostMapping("/{id}/vote")
@@ -86,7 +86,7 @@ public class SurveyController {
   /**
    * 설문 결과
    *
-   * GET /api/surveys/{id}/result
+   * [GET] /api/surveys/{id}/result
    */
   @Operation(summary = "설문 결과 조회", description = "설문의 투표 결과를 조회하는 API 입니다.")
   @GetMapping("/{id}/result")

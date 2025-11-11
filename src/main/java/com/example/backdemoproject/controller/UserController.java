@@ -29,7 +29,7 @@ public class UserController {
 
   /**
    * 전체 사용자 목록 조회 (관리자용)
-   * GET /api/users
+   * [GET] /api/users
    */
   @Operation(summary = "사용자 목록 조회", description = "모든 사용자 목록을 조회하는 API입니다.")
   @GetMapping
@@ -42,7 +42,7 @@ public class UserController {
 
   /**
    * 사용자 로그인
-   * GET /api/users/login/{username}
+   * [GET] /api/users/login/{username}
    */
   @Operation(summary = "사용자 로그인", description = "사용자명으로 사용자를 조회하고 정보를 반환합니다.")
   @GetMapping("/login/{username}")
@@ -53,7 +53,7 @@ public class UserController {
 
   /**
    * 관리자 로그인
-   * POST /api/users/login
+   * [POST] /api/users/login
    */
   @Operation(summary = "관리자 로그인", description = "관리자 계정으로 로그인하는 API입니다.")
   @PostMapping("/login")
@@ -64,7 +64,7 @@ public class UserController {
 
   /**
    * 사용자 등록
-   * POST /api/users/register
+   * [POST] /api/users/register
    */
   @Operation(summary = "사용자 등록", description = "사용자를 등록하는 API입니다.")
   @PostMapping("/register")
